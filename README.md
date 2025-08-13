@@ -1,2 +1,2 @@
-# ai-project-1-pacman
+# AI Project I (Packman)
 Making a ml model for packman game
