@@ -295,6 +295,11 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
+
+
+        v_corners=(False,False,False,False)
+        return (self.startingPosition,v_corners)
+
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -302,6 +307,10 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
+
+
+        _,v_corners=state
+        return all(v_corners)
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -316,7 +325,24 @@ class CornersProblem(search.SearchProblem):
         """
 
         successors = []
+        pos,visited=state
+
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            "*** YOUR CODE HERE ***"
+
+
+
+            x,y = pos
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                next_visited=list(visited)
+                if(nextx,nexty) in self.corners:
+                    ind=self.corners.index((nextx,nexty))
+                    next_visited[ind]=True
+                succ_state=((nextx, nexty), tuple(next_visited))
+                successors.append((succ_state,action,1))
+
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
             #   x,y = currentPosition
@@ -324,7 +350,7 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,6 +386,34 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+
+    pos,visit=state
+    corners=problem.corners
+    notvisit=[corners[i] for i in range(4) if not visit[i]]
+
+    heuristic=0
+    c_pos=pos
+    if not notvisit:
+        return 0
+    dist = [util.manhattanDistance(pos, corner) for corner in notvisit]
+    return max(dist)
+
+
+    
+    
+    #     dists=[util.manhattanDistance(c_pos, corner) for corner in notvisit]
+    #     mindist=min(dists)
+    #     heuristic+=mindist
+    #     n_index=dists.index(mindist)
+    #     c_pos=notvisit[n_index]
+    #     notvisit.pop(n_index)
+
+    # return heuristic
+
+
+
+
+
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
@@ -453,8 +507,23 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+    foodlst = foodGrid.asList()
+    maxdist = 0
     "*** YOUR CODE HERE ***"
-    return 0
+
+    if not foodlst:
+        return 0
+
+    for food in foodlst:
+        key = (position, food)
+        if key not in problem.heuristicInfo:
+            problem.heuristicInfo[key] = mazeDistance(position, food, problem.startingGameState)
+        dist = problem.heuristicInfo[key]
+        if dist > maxdist:
+            maxdist = dist
+
+    return maxdist
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -485,6 +554,11 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        problem = AnyFoodSearchProblem(gameState)
+        return search.breadthFirstSearch(problem)
+
+
+
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -521,6 +595,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+
+        return self.food[x][y]
+
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
@@ -540,3 +617,6 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
     return len(search.bfs(prob))
+
+
+
